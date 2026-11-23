@@ -19,7 +19,7 @@ AirDrop, Taildrop, Nearby Share and the cloud tend to fail on the files that mat
 
 ## Install
 
-You need Python 3.9 or newer on the receiving computer.
+You need Python 3.10 or newer on the receiving computer.
 
 ```
 pip install git+https://github.com/GustafMos/dropdock

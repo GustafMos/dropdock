@@ -1,6 +1,8 @@
+import gc
 import http.client
 import json
 import socket
+import sys
 
 import pytest
 
@@ -17,10 +19,15 @@ def free_port():
 
 @pytest.fixture
 def root():
-    try:
-        r = tk.Tk()
-    except tk.TclError:
-        pytest.skip("no display")
+    r = None
+    for attempt in range(2):  # Tk occasionally fails to start right after another window was torn down
+        try:
+            r = tk.Tk()
+            break
+        except tk.TclError:
+            gc.collect()
+    if r is None:
+        pytest.skip("no display: %s" % sys.exc_info()[1])
     yield r
     try:
         r.destroy()
@@ -44,25 +51,32 @@ def test_unknown_device_is_offered_and_let_in(root, tmp_path, monkeypatch):
     log = []
 
     def get():
-        c = http.client.HTTPConnection("127.0.0.1", port, timeout=5)
+        c = http.client.HTTPConnection("127.0.0.1", port, timeout=15)
         c.request("GET", "/" + app.cfg["key"] + "/")
         return c.getresponse().status
 
-    def step(n=[0]):
-        n[0] += 1
-        if n[0] == 1:
+    def links():
+        return [w.winfo_children()[0].get() for w in app.links.winfo_children() if w.winfo_children()]
+
+    state = {"phase": "start", "proc": None}
+
+    def step():
+        ph = state["phase"]
+        if ph == "start":
             app.start()
-        elif n[0] == 4:
+            state["phase"], state["proc"] = "wait_ready", app.proc
+        elif ph == "wait_ready" and links():           # the server printed its link: it is listening
             log.append(("before", get()))
-        elif n[0] == 8:
+            state["phase"] = "wait_restart"
+        elif ph == "wait_restart" and asked and app.proc is not state["proc"] and links():
             log.append(("after", get()))
-            log.append(("links", [w.winfo_children()[0].get() for w in app.links.winfo_children()]))
+            log.append(("links", links()))
             app.quit()
             return
-        root.after(500, step)
+        root.after(200, step)
 
     root.after(200, step)
-    root.after(30000, root.quit)  # never hang the test run if a step fails
+    root.after(60000, root.quit)  # never hang the test run if a step fails
     root.mainloop()
     if app.proc:  # the watchdog fired: don't leave a server running
         app.proc.kill()

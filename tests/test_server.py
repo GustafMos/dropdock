@@ -64,7 +64,7 @@ def test_resumable_parallel_upload(srv):
     assert st["missing"] == [2, 3, 4, 5] and st["total"] == 6
     # a piece cut off halfway is not recorded
     sk = socket.create_connection(("127.0.0.1", port))
-    sk.sendall((f"PUT /{KEY}/put?{q(name, size, index=3, fp="ab12")} HTTP/1.1\r\nHost: x\r\nContent-Length: {CH}\r\n\r\n")
+    sk.sendall((f"PUT /{KEY}/put?{q(name, size, index=3, fp='ab12')} HTTP/1.1\r\nHost: x\r\nContent-Length: {CH}\r\n\r\n")
                .encode() + data[3 * CH:3 * CH + CH // 2])
     sk.close()
     time.sleep(0.3)

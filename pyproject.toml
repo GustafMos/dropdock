@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "Send big files to a computer from any browser on your network: resumable, parallel, skips files it already has. No dependencies."
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [{name = "GustafMos"}]
 keywords = ["file transfer", "upload", "lan", "tailscale", "resumable", "phone"]
 classifiers = [
