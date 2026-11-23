@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dropdock"
+dynamic = ["version"]
+description = "Send big files to a computer from any browser on your network: resumable, parallel, skips files it already has. No dependencies."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+authors = [{name = "GustafMos"}]
+keywords = ["file transfer", "upload", "lan", "tailscale", "resumable", "phone"]
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+  "Environment :: Web Environment",
+  "Topic :: Communications :: File Sharing",
+]
+
+[project.urls]
+Homepage = "https://github.com/GustafMos/dropdock"
+Funding = "https://ko-fi.com/ripscorpy"
+
+[project.scripts]
+dropdock = "dropdock.__main__:main"
+
+[project.gui-scripts]
+dropdock-gui = "dropdock.launcher:main"
+
+[tool.setuptools]
+packages = ["dropdock"]
+
+[tool.setuptools.dynamic]
+version = {attr = "dropdock.server.__version__"}
