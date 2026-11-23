@@ -23,6 +23,7 @@ import re
 import secrets
 import shutil
 import socket
+import socketserver
 import sys
 import threading
 import time
@@ -579,7 +580,10 @@ class Server(ThreadingHTTPServer):
     def server_bind(self):
         if os.name == "nt" and hasattr(socket, "SO_EXCLUSIVEADDRUSE"):
             self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
-        super().server_bind()
+        # HTTPServer.server_bind also looks up the host's full DNS name, which can stall for half a minute
+        # (seen on macOS); that name is never used here, so bind the plain socket only.
+        socketserver.TCPServer.server_bind(self)
+        self.server_name, self.server_port = self.server_address[:2]
 
     def process_request(self, request, client_address):
         if not self.slots.acquire(blocking=False):  # too many connections at once
