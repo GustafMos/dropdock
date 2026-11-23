@@ -75,13 +75,19 @@ def test_unknown_device_is_offered_and_let_in(root, tmp_path, monkeypatch):
             return
         root.after(200, step)
 
+    def watchdog():  # never hang the test run if a step fails; keep what the window showed
+        state["shown"] = "phase=%s proc_changed=%s asked=%s\n%s" % (
+            state["phase"], app.proc is not state["proc"], asked, app.log.get("1.0", "end"))
+        root.quit()
+
     root.after(200, step)
-    root.after(60000, root.quit)  # never hang the test run if a step fails
+    root.after(60000, watchdog)
     root.mainloop()
     if app.proc:  # the watchdog fired: don't leave a server running
         app.proc.kill()
-    assert log[0] == ("before", 403)
+    assert log and log[0] == ("before", 403), state.get("shown")
     assert asked and "127.0.0.1" in asked[0]
+    assert len(log) > 1, state.get("shown")
     assert log[1] == ("after", 200)
     assert log[2][1] == ["http://127.0.0.1:%d/%s/" % (port, app.cfg["key"])]
     cfg = json.load(open(L.CFG, encoding="utf-8"))
